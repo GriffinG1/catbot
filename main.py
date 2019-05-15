@@ -32,7 +32,7 @@ if not os.path.exists('config.py'):
 
 import config
 
-bot = commands.Bot(command_prefix=config.prefix, description="cats", pm_help=True)
+bot = commands.Bot(command_prefix=config.prefix, description="cats")
 
 @bot.event
 async def on_ready():
@@ -101,16 +101,13 @@ async def about(ctx):
 @bot.command()
 async def reload(ctx):
     """Reloads an addon."""
-    if ctx.author == ctx.guild.owner or ctx.author == bot.creator:
+    if ctx.author == ctx.guild.owner or ctx.author.id == 177939404243992578:
         errors = ""
-        for module in os.listdir("modules"):
-            if ".py" in module:
-                module = module.replace('.py', '')
-                try:
-                    bot.unload_extension("modules.{}".format(module))
-                    bot.load_extension("modules.{}".format(module))
-                except Exception as e:
-                    errors += 'Failed to load module: `{}.py` due to `{}: {}`\n'.format(module, type(e).__name__, e)
+        for module in modules:
+            try:
+                bot.reload_extension(module)
+            except Exception as e:
+                errors += 'Failed to load module: `{}` due to `{}: {}`\n'.format(module, type(e).__name__, e)
         if not errors:
             await ctx.send(':white_check_mark: Extensions reloaded.')
         else:
