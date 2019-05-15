@@ -1,0 +1,10 @@
+# Bot config
+
+# Bot token as string
+token = ''
+
+# Bot prefixes as list
+prefix = ['.', '?']
+
+# ID for minecraft role as int
+minecraft_role = 0
