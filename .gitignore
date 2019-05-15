@@ -1,3 +1,4 @@
+*.vs*
 *__pycache__*
 config.py
-saves/*
+mods.json

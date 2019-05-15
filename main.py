@@ -1,11 +1,13 @@
 import discord
 import os
 import traceback
+import json
+import argparse
 from shutil import copyfile
 from discord.ext import commands
 
 def parse_cmd_arguments():  # travis handler, taken from https://github.com/appu1232/Discord-Selfbot/blob/master/appuselfbot.py
-    parser = argparse.ArgumentParser(description="Logicity")
+    parser = argparse.ArgumentParser(description="Catbot")
     parser.add_argument("-test", "--test-run",  # test run flag for Travis
                         action="store_true",
                         help="Makes the bot quit before trying to log in")
@@ -30,23 +32,42 @@ if not os.path.exists('config.py'):
 
 import config
 
-bot = commands.Bot(command_prefix=config.prefix, description="Designed for toggling roles", pm_help=True)
+bot = commands.Bot(command_prefix=config.prefix, description="cats", pm_help=True)
 
 @bot.event
 async def on_ready():
     try:
         bot.guild = bot.get_guild(511229375719669766)
         bot.minecraft_role = discord.utils.get(bot.guild.roles, id=config.minecraft_role)
+        bot.mod_dict = json.load(open("mods.json", "r"))
         bot.creator = discord.utils.get(bot.guild.members, id=177939404243992578)
         print("Initialized on {}".format(bot.guild.name))
-    except:
+    except Exception as e:
         pass # Only fails if not in guild, won't be possible after first launch
+        print(e)
 
 async def globally_block_dms(ctx):
     if ctx.guild is None:
         raise discord.ext.commands.NoPrivateMessage(' ')
         return False
     return True
+
+# loads extensions
+modules = [
+    'modules.util',
+    'modules.vote'
+]
+
+failed_modules = []
+
+for extension in modules:
+    try:
+        bot.load_extension(extension)
+    except Exception as e:
+        print('{} failed to load.\n{}: {}'.format(extension, type(e).__name__, e))
+        failed_modules.append([extension, type(e).__name__, e])
+if not failed_modules:
+    print('All addons loaded!')
         
 @bot.event
 async def on_command_error(ctx, e):
@@ -75,48 +96,30 @@ async def on_error(event, *args, **kwargs):
         
 @bot.command()
 async def about(ctx):
-    await ctx.send("This is a bot written by {} for toggling roles.".format(bot.creator))
-    
+    await ctx.send("This is a bot written by {}, and can be found at https://github.com/GriffinG1/catbot.".format(bot.creator))
+
 @bot.command()
-async def togglerole(ctx, role):
-    """Toggles roles. Available: minecraft"""
-    await ctx.message.delete()
-    if role.lower() == "minecraft":
-        if bot.minecraft_role in ctx.author.roles:
-            await ctx.author.remove_roles(bot.minecraft_role)
-            try:
-                await ctx.author.send("You no longer have the minecraft role.")
-            except discord.Forbidden:
-                pass
+async def reload(ctx):
+    """Reloads an addon."""
+    if ctx.author == ctx.guild.owner or ctx.author == bot.creator:
+        errors = ""
+        for module in os.listdir("modules"):
+            if ".py" in module:
+                module = module.replace('.py', '')
+                try:
+                    bot.unload_extension("modules.{}".format(module))
+                    bot.load_extension("modules.{}".format(module))
+                except Exception as e:
+                    errors += 'Failed to load module: `{}.py` due to `{}: {}`\n'.format(module, type(e).__name__, e)
+        if not errors:
+            await ctx.send(':white_check_mark: Extensions reloaded.')
         else:
-            await ctx.author.add_roles(bot.minecraft_role)
-            try:
-                await ctx.author.send("You have the minecraft role now.")
-            except discord.Forbidden:
-                pass
+            await ctx.send(errors)
     else:
-        try:
-            await ctx.author.send("`{role}` is not a valid entry.")
-        except discord.Forbidden:
-                pass
-               
-@bot.command()
-@commands.has_any_role("Admins")
-async def mentionrole(ctx, role):
-    """Mentions a role. Available: minecraft"""
-    await ctx.message.delete()
-    if role.lower() == "minecraft":
-        await bot.minecraft_role.edit(mentionable=True)
-        await ctx.send("{}".format(bot.minecraft_role.mention))
-        await bot.minecraft_role.edit(mentionable=False)
-    else:
-        try:
-            await ctx.author.send("`{role}` is not a valid entry.")
-        except discord.Forbidden:
-                pass
+        await ctx.send("You don't have permission to do that!")
             
 try:
     bot.run(config.token)
-except:
+except Exception as e:
     print('config.py is missing values.')
     input('Press the enter key to close.')
