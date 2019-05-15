@@ -60,6 +60,7 @@ class Vote(commands.Cog):
         self.messages.append(await ctx.channel.fetch_message(vote_message.id))
         
     @commands.command()
+    @commands.has_any_role("Admins")
     async def create_vote(self, ctx):
         dict = self.bot.mod_dict.copy()
         index = 0
