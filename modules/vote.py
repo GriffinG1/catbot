@@ -62,6 +62,7 @@ class Vote(commands.Cog):
     @commands.command()
     @commands.has_any_role("Admins")
     async def create_vote(self, ctx):
+        self.messages = []
         dict = self.bot.mod_dict.copy()
         index = 0
         while len(dict) > 0:
@@ -83,6 +84,13 @@ class Vote(commands.Cog):
                 else:
                     embed.description += f"{self.bot.mod_dict[message.reactions.index(reaction) + index]} - {reaction.count-1}\n"
             index += 20
+        await ctx.send(embed=embed)
+        
+    @commands.command()
+    async def listopts(self, ctx):
+        embed = discord.Embed(description="")
+        for mod in self.bot.mod_dict:
+            embed.description += f"{mod}\n"
         await ctx.send(embed=embed)
 
     
