@@ -61,7 +61,7 @@ class Vote(commands.Cog):
         
     @commands.command()
     async def create_vote(self, ctx):
-        if discord.utils.get(guild.roles, name="Admins") in ctx.author.roles or ctx.author == self.bot.creator:
+        if discord.utils.get(ctx.guild.roles, name="Admins") in ctx.author.roles or ctx.author == self.bot.creator:
             self.messages = []
             dict = self.bot.mod_dict.copy()
             index = 0

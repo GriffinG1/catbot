@@ -32,7 +32,7 @@ class Utility(commands.Cog):
     @commands.command()
     async def mentionrole(self, ctx, role):
         """Mentions a role. Available: minecraft"""
-        if discord.utils.get(guild.roles, name="Admins") in ctx.author.roles or ctx.author == self.bot.creator:
+        if discord.utils.get(ctx.guild.roles, name="Admins") in ctx.author.roles or ctx.author == self.bot.creator:
             await ctx.message.delete()
             if role.lower() == "minecraft":
                 await self.bot.minecraft_role.edit(mentionable=True)
