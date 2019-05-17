@@ -60,15 +60,17 @@ class Vote(commands.Cog):
         self.messages.append(await ctx.channel.fetch_message(vote_message.id))
         
     @commands.command()
-    @commands.has_any_role("Admins")
     async def create_vote(self, ctx):
-        self.messages = []
-        dict = self.bot.mod_dict.copy()
-        index = 0
-        while len(dict) > 0:
-            await self.make_embed(ctx, dict[:20], index)
-            del dict[:20]
-            index += 20
+        if discord.utils.get(guild.roles, name="Admins") in ctx.author.roles or ctx.author == self.bot.creator:
+            self.messages = []
+            dict = self.bot.mod_dict.copy()
+            index = 0
+            while len(dict) > 0:
+                await self.make_embed(ctx, dict[:20], index)
+                del dict[:20]
+                index += 20
+        else:
+            await ctx.send("You can't use this.")
 
     @commands.command()
     async def tally(self, ctx):

@@ -30,19 +30,21 @@ class Utility(commands.Cog):
                     pass
                
     @commands.command()
-    @commands.has_any_role("Admins")
     async def mentionrole(self, ctx, role):
         """Mentions a role. Available: minecraft"""
-        await ctx.message.delete()
-        if role.lower() == "minecraft":
-            await self.bot.minecraft_role.edit(mentionable=True)
-            await ctx.send(f"{self.bot.minecraft_role.mention}")
-            await self.bot.minecraft_role.edit(mentionable=False)
+        if discord.utils.get(guild.roles, name="Admins") in ctx.author.roles or ctx.author == self.bot.creator:
+            await ctx.message.delete()
+            if role.lower() == "minecraft":
+                await self.bot.minecraft_role.edit(mentionable=True)
+                await ctx.send(f"{self.bot.minecraft_role.mention}")
+                await self.bot.minecraft_role.edit(mentionable=False)
+            else:
+                try:
+                    await ctx.author.send("`{role}` is not a valid entry.")
+                except discord.Forbidden:
+                        pass
         else:
-            try:
-                await ctx.author.send("`{role}` is not a valid entry.")
-            except discord.Forbidden:
-                    pass
+            await ctx.send("You can't use this.")
 
     
 def setup(bot):
